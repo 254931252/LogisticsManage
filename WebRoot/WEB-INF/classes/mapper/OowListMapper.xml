@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.OowListDao" >
+  <resultMap id="BaseResultMap" type="entity.OowList" >
+    <id column="OLID" property="olid" />
+    <result column="OLDATE" property="oldate" />
+    <result column="WHID" property="whid" />
+  </resultMap>
+  <insert id="addOow">
+  	<selectKey keyProperty="olId" resultType="Integer" order="BEFORE">
+		select max(olId)+1 from oowlist
+	</selectKey>
+  	 insert into oowlist (olid,oldate,whid)values (#{olId},#{outtime},#{subId})
+  </insert>
+  
+</mapper>

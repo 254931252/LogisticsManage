@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.AccountsDao" >
+  <resultMap id="BaseResultMap" type="entity.Accounts" >
+    <id column="ACCID" property="accid" />
+    <result column="ACCSTYLE" property="accstyle" />
+    <result column="ORDID" property="ordid" />
+    <result column="BLID" property="blid" />
+    <result column="ACCMONEY" property="accmoney" />
+    <result column="ACCDATE" property="accdate" />
+  </resultMap>
+  
+</mapper>

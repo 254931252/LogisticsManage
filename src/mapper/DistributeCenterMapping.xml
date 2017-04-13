@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.DistributeCenterDao" >
+	<!-- 操作protype 商品类型表 -->
+	<select id="getTypeList" resultType="entity.ProType">
+  		select * from protype where 1 = 1
+  		<if test="ptName != ''">
+  			and pttype = #{ptName}
+  		</if>
+  		order by ptid asc
+	</select>
+	<insert id="addNewType">
+		<selectKey keyProperty="ptId" resultType="Integer" order="BEFORE">
+			select max(ptid)+1 from protype
+		</selectKey>
+		insert into protype values (#{ptId}, #{typeName},null,null)
+	</insert>
+	
+	<!-- 操作product 商品表 -->
+	<select id="getProduct" resultType="entity.Product">
+		select * from product where 1 = 1
+		<if test="proName != ''">
+			and proname = #{proName}
+		</if>
+	</select>
+	<insert id="addNewProduct" parameterType="entity.Product">
+		<selectKey keyProperty="proId" resultType="Integer" order="BEFORE">
+			select max(proId)+1 from product
+		</selectKey>
+		insert　into product values (#{proId},#{proname},#{proprice},#{proinfo},#{protype},null,#{pmodel},#{supid},#{costprice})
+	</insert>
+	<update id="updateProduct">
+		update product set proPrice = #{proPrice},CostPrice = #{proCost} where proId = #{proId}
+	</update>
+	<delete id="deleteProduct">
+		delete from product where proid = #{proId}
+	</delete>
+	
+	<!-- 操作district 区域表 -->
+	<select id="selectDisList" resultType="entity.District">
+		select * from district
+	</select>
+	
+	<!-- 操作subtation 供应商表 -->
+	<select id="selectSub" resultType="entity.Substation">
+		select * from substation where 1 = 1
+		<if test="subId != 0">
+			and sub_id = #{subId}
+		</if>
+		<if test="subName != ''">
+			and sub_name = #{subName}
+		</if>
+		order by sub_id asc
+	</select>
+	<insert id="addNewSubstation">
+		<selectKey keyProperty="subId" resultType="Integer" order="BEFORE">
+			select max(sub_Id)+1 from substation
+		</selectKey>
+		insert into substation values (#{subId},#{subName})
+	</insert>
+	
+	<!-- 操作inventory 库存表 -->
+	<insert id="addNewInventory">
+		<selectKey keyProperty="invId" resultType="Integer" order="BEFORE">
+			select max(invId)+1 from inventory
+		</selectKey>
+		insert into inventory values (#{invId},#{proId}, 0, 0)
+	</insert>
+	<delete id="deleteAnInventory">
+		delete from inventory where proid = #{proId}
+	</delete>
+	
+	<!-- 操作prolack 缺货表 -->
+	<insert id="addProLack">
+		<selectKey keyProperty="plId" resultType="Integer" order="BEFORE">
+			select max(plId)+1 from prolack
+		</selectKey>
+		insert into prolack values(#{plId},#{proId},0)
+	</insert>
+	<delete id="deleteAProLack">
+		delete from prolack where proid = #{proId}
+	</delete>
+	
+	<!-- 操作buypro 购货表 -->
+	<select id="selectBuyPro" resultType="entity.BuyPro">
+		select * from buypro where blid = 1 and proid = #{proId}
+	</select>
+	<insert id="addABuyPro">
+		<selectKey keyProperty="bpId" resultType="Integer" order="BEFORE">
+			select max(bpId)+1 from buypro
+		</selectKey>
+		insert into buypro values(#{bpId},#{proId},#{proAmount},1,'未结算','未入库')
+	</insert>
+	<update id="addBuyProAmount">
+		update buypro set proamount = proamount + #{proAmount} where proid = #{proId}
+	</update>
+	<update id="updateAmount">
+		update buypro set proamount = #{proAmount} where bpid = #{bpId}
+	</update>
+	<update id="addToList">
+		update buypro set blid = (select blid from buylist where bldate = 'notEnter' and blstate = '未提交') where bpid = #{bpId}
+	</update>
+	<update id="returnToList">
+		update buypro set blid = 1 where bpid = #{bpId}
+	</update>
+	<delete id="deleteABuyPro">
+		delete from buypro where bpid = #{bpId}
+	</delete>
+	
+	<!-- 操作buylist 购货清单表 -->
+	<insert id="addNewBuyList">
+		<selectKey keyProperty="blId" resultType="Integer" order="BEFORE">
+			select max(blId)+1 from buylist
+		</selectKey>
+		insert into buylist values (#{blId},'notEnter','未提交')
+	</insert>
+	<update id="doSubmit">
+		update buylist set bldate = #{blDate},blstate = '未批准' where blid = (select blid from buylist where bldate = 'notEnter' and blstate = '未提交')
+	</update>
+	
+	<!-- 连表查询 -->
+	<!-- 查询分页记录 -->
+	<select id="proManage" resultType="view.ProManage">
+		select * from
+			(select rownum as rowno,t.* from
+				(select 
+					p.proid,t.pttype,p.proname,p.proprice,p.costprice,p.pmodel,s.sub_name,p.proinfo,i.proamount,l.lackamount
+				from product p 
+					inner join protype t on p.protype = t.ptid
+					inner join prolack l on p.proid = l.proid
+					inner join inventory i on p.proid = i.proid
+					inner join substation s on s.sub_id = p.supid
+				where 1 = 1
+				<if test="proType != 0">
+					and p.protype = #{proType}
+				</if>
+				<if test="keyWord != ''">
+					and p.proname like '%'||#{keyWord}||'%'
+				</if>
+				order by p.proid asc) t
+			where rownum&lt;=#{upper}) r 
+		where r.rowno&gt;=#{lower}
+	</select>
+	<!-- 查询商品表视图总记录数（带条件） -->
+	<select id="getProListSize" resultType="java.lang.Integer">
+		select count(1) from product p 
+	        inner join protype t on p.protype = t.ptid
+	        inner join prolack l on p.proid = l.proid
+	        inner join inventory i on p.proid = i.proid
+	        inner join substation s on s.sub_id = p.supid
+	    where 1 = 1 
+		<if test="proType != 0">
+			and p.protype = #{proType}
+		</if>
+		<if test="keyWord != ''">
+			and p.proname like '%'||#{keyWord}||'%'
+		</if>
+	</select>
+	<!-- 查询商品表视图单条记录 -->
+	<select id="getAnProInfo" resultType="view.ProManage">
+		select
+			p.proid,t.pttype,p.proname,p.proprice,p.costprice,p.pmodel,s.sub_name,p.proinfo,i.proamount,l.lackamount
+		from product p 
+			inner join protype t on p.protype = t.ptid
+			inner join prolack l on p.proid = l.proid
+			inner join inventory i on p.proid = i.proid
+			inner join substation s on s.sub_id = p.supid
+		where p.proid = #{proId}
+	</select>
+	
+	<!-- 购货表视图 -->
+	<!-- 分页记录 -->
+	<select id="selectBuyProView" resultType="view.BuyProView">
+		select * from
+			(select rownum as rowno,bpv.* from
+				(select * from
+					(select 
+						b.bpid,p.proid,p.protype,p.proname,p.costprice,b.proamount,b.blid
+					from product p
+						inner join buypro b on p.proid = b.proid) t
+				where t.blid = 1
+				<if test="ptId != 0">
+					and t.protype = #{ptId}
+				</if>
+				<if test="proName != ''">
+					and t.proname like '%'||#{proName}||'%'
+				</if>
+				order by t.bpid asc) bpv
+			where rownum&lt;=#{upper}) r 
+		where r.rowno&gt;=#{lower}
+				<if test="bpId != 0">
+					and r.bpid = #{bpId}
+				</if>
+	</select>
+	<!-- 总记录数 -->
+	<select id="selectMaxBPView" resultType="java.lang.Integer">
+		select count(1) from
+			(select 
+				b.bpid,p.proid,p.protype,p.proname,p.costprice,b.proamount,b.blid
+			from product p
+				inner join buypro b on p.proid = b.proid) t
+		where t.blid = 1
+		<if test="ptId != 0">
+			and t.protype = #{ptId}
+		</if>
+		<if test="proName != ''">
+			and t.proname like '%'||#{proName}||'%'
+		</if>
+		order by t.bpid asc
+	</select>
+	<!-- 获得当前清单 -->
+	<select id="getCurrList" resultType="view.BuyProView">
+		select * from
+			(select 
+				b.bpid,p.proid,p.protype,p.proname,p.costprice,b.proamount,b.blid
+			from product p
+				inner join buypro b on p.proid = b.proid) t
+		where t.blid = (select blid from buylist where bldate = 'notEnter' and blstate = '未提交')
+		order by t.bpid asc
+	</select>
+	
+	<!-- 库房视图 -->
+	<!-- 获得分页记录 -->
+	<select id="selectWareHouse" resultType="view.WareHouseInfo">
+		select whi.whid,whi.whname,whi.username,whi.whaddress from
+			(select rownum as rn,wh.* from 
+				(select 
+					w.whid,w.whname,u.username,w.whaddress
+				from warehouse w 
+					inner join users u on w.userid = u.userid
+				where 1 = 1
+				<if test="disId != 0">
+					and w.disid = #{disId}
+				</if>
+				<if test="userName != ''">
+					and u.username like '%'||#{userName}||'%'
+				</if>
+				) wh 
+			where rownum &lt;=#{upper}) whi
+		where whi.rn &gt;= #{lower}
+		order by whi.whid asc
+	</select>
+	<select id="getMaxRecord" resultType="java.lang.Integer">
+		select 
+			count(0)
+		from warehouse w 
+			inner join users u on w.userid = u.userid
+		where 1 = 1
+		<if test="disId != 0">
+			and w.disid = #{disId}
+		</if>
+		<if test="userName != ''">
+			and u.username like '%'||#{userName}||'%'
+		</if>
+	</select>
+	
+	<!-- 出入库记录视图 -->
+	<!-- 出库 -->
+	<select id="outOfWareList" resultType="view.OutOfOrIntoWareHouse">
+		select whi.whname,whi.username,whi.proname,whi.proAmount,whi.ooidate from
+			(select rownum as rn,wh.* from 
+				(select
+					w.whname,u.username,p.proname,o.proAmount,l.oldate ooidate
+				from outofware o
+					inner join warehouse w on w.whid = o.whid
+					inner join users u on u.userid = w.userid
+					inner join product p on o.proid = p.proid
+					inner join oowlist l on l.olid = o.olid
+				where 1 = 1
+				<if test="proName != ''">
+					and p.proname like '%'||#{proName}||'%'
+				</if>
+				<if test="whId != 0">
+					and w.whid = #{whId}
+				</if>
+				) wh
+			where rownum &lt;=#{upper}) whi
+		where whi.rn &gt;= #{lower}
+	</select>
+	<select id="getOOWListSize" resultType="java.lang.Integer">
+		select
+			count(0)
+		from outofware o
+			inner join warehouse w on w.whid = o.whid
+			inner join users u on u.userid = w.userid
+			inner join product p on o.proid = p.proid
+			inner join oowlist l on l.olid = o.olid
+		where 1 = 1
+		<if test="proName != ''">
+			and p.proname like '%'||#{proName}||'%'
+		</if>
+		<if test="whId != 0">
+			and w.whid = #{whId}
+		</if>
+	</select>
+	
+	<!-- 入库 -->
+	<select id="intoWareList" resultType="view.OutOfOrIntoWareHouse">
+		select whi.whname,whi.username,whi.proname,whi.proAmount,whi.ooidate from
+			(select rownum as rn,wh.* from 
+				(select
+				    w.whname,u.username,p.proname,i.proAmount,i.itwdate ooidate
+				from intofware i
+				    inner join warehouse w on i.whid = w.whid
+				    inner join users u on u.userid = w.userid
+				    inner join product p on p.proid = i.proid
+				where 1 = 1
+				<if test="proName != ''">
+					and p.proname like '%'||#{proName}||'%'
+				</if>
+				<if test="whId != 0">
+					and w.whid = #{whId}
+				</if>
+				) wh
+			where rownum &lt;=#{upper}) whi
+		where whi.rn &gt;= #{lower}
+	</select>
+	<select id="getITWListSize" resultType="java.lang.Integer">
+		select
+		    count(0)
+		from intofware i
+		    inner join warehouse w on i.whid = w.whid
+		    inner join users u on u.userid = w.userid
+		    inner join product p on p.proid = i.proid
+		where 1 = 1
+		<if test="proName != ''">
+			and p.proname like '%'||#{proName}||'%'
+		</if>
+		<if test="whId != 0">
+			and w.whid = #{whId}
+		</if>
+	</select>
+</mapper>

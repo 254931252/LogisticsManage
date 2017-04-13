@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.IntofWareDao" >
+  <resultMap id="BaseResultMap" type="entity.IntofWare" >
+    <id column="ITWID" property="itwid" />
+    <result column="PROID" property="proid" />
+    <result column="PROAMOUNT" property="proamount" />
+    <result column="WHID" property="whid" />
+    <result column="ITWDATE" property="itwdate" />
+  </resultMap>
+  
+
+  	<insert id="addproductToCenterWare" parameterType="entity.IntofWare">
+  		<selectKey keyProperty="itwId" resultType="Integer" order="BEFORE">
+			select max(itwId)+1 from intofware
+		</selectKey>
+  		insert into intofware  values (#{itwId},#{proid},#{proamount},1,#{itwdate})
+  	</insert>
+</mapper>
+
+

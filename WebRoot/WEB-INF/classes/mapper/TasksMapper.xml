@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.TasksDao" >
+  <resultMap id="BaseResultMap" type="entity.Tasks" >
+    <result column="TASK_ID" property="taskId" />
+    <result column="SUB_ID" property="subId"  />
+    <result column="ORD_ID" property="ordId" />
+    <result column="SEN_ID" property="senId" />
+  </resultMap>
+
+  <select id="allTask" resultType="view.ShowTask">
+  	 select * from(select rownum as r,t.* from (select tasks.task_id,tasks.dotask_id,
+       orders.ordid,orders.createdate,orderstate.osname,orderstate.osid
+       ,substation.sub_name,substation.sub_id,
+       users.idcard,users.tel,users.address,users.email,users.code,users.district,users.name,users.userid 
+      
+       from tasks inner join orders on tasks.ord_id=orders.ordid
+       inner join orderstate on orders.ordid=orderstate.osid
+       inner join substation on orders.sub_id=substation.sub_id
+       inner join users on orders.userid=users.userid where orderstate.osname='已接单'
+ <if test="taskId!=-1">
+ 	and task_Id=#{taskId}
+ </if>
+ <if test="createDate!=''">
+ 	and orders.createdate=#{createDate}
+ </if>
+ <if test="sender!=-1">
+ 	and senders.sen_id=#{sender}
+ </if>
+ <if test="orderState!=-1">
+ 	and orderstate.osid=#{orderState}
+ </if>
+ )t  where rownum &lt;=#{top})where r &gt;=#{down}
+ 
+  </select>
+  <select id="allTask2" resultType="view.ShowTask">
+  	 select * from(select rownum as r,t.* from (select tasks.task_id,tasks.dotask_id,
+       orders.ordid,orders.createdate,orderstate.osname,orderstate.osid
+       ,substation.sub_name,substation.sub_id,
+       users.idcard,users.tel,users.address,users.email,users.code,users.district,users.name,users.userid 
+      
+       from tasks inner join orders on tasks.ord_id=orders.ordid
+       inner join orderstate on orders.ordid=orderstate.osid
+       inner join substation on orders.sub_id=substation.sub_id
+       inner join users on orders.userid=users.userid where orderstate.osname='配送中'
+ <if test="taskId!=-1">
+ 	and task_Id=#{taskId}
+ </if>
+ <if test="createDate!=''">
+ 	and orders.createdate=#{createDate}
+ </if>
+ <if test="sender!=-1">
+ 	and senders.sen_id=#{sender}
+ </if>
+ <if test="orderState!=-1">
+ 	and orderstate.osid=#{orderState}
+ </if>
+ )t  where rownum &lt;=#{top})where r &gt;=#{down}
+ 
+  </select>
+  <select id="tasksCount" resultType="java.lang.Integer">
+  	 select count(*) from (
+  	 	 select tasks.task_id,tasks.dotask_id,
+       orders.ordid,orders.createdate,orderstate.osname,orderstate.osid
+       ,substation.sub_name,substation.sub_id,
+       users.idcard,users.tel,users.address,users.email,users.code,users.district,users.name,users.userid 
+      
+       from tasks inner join orders on tasks.ord_id=orders.ordid
+       inner join orderstate on orders.ordid=orderstate.osid
+       inner join substation on orders.sub_id=substation.sub_id
+       inner join users on orders.userid=users.userid where orderstate.osname='已接单'
+	  	 <if test="taskId!=-1">
+	 		and task_Id=#{taskId}
+		 </if>
+		 <if test="createDate!=''">
+		 	and orders.createdate=#{createDate}
+		 </if>
+		 <if test="sender!=-1">
+		 	and senders.sen_id=#{sender}
+		 </if>
+		 <if test="orderState!=-1">
+		 	and orderstate.osid=#{orderState}
+		 </if>
+		 <if test="district!=-1">
+		 	and users.district=#{district}
+		 </if>
+  	 )
+  </select>
+  <select id="tasksCount2" resultType="java.lang.Integer">
+  	 select count(*) from (
+  	 	 select tasks.task_id,tasks.dotask_id,
+       orders.ordid,orders.createdate,orderstate.osname,orderstate.osid
+       ,substation.sub_name,substation.sub_id,
+       users.idcard,users.tel,users.address,users.email,users.code,users.district,users.name,users.userid 
+      
+       from tasks inner join orders on tasks.ord_id=orders.ordid
+       inner join orderstate on orders.ordid=orderstate.osid
+       inner join substation on orders.sub_id=substation.sub_id
+       inner join users on orders.userid=users.userid where orderstate.osname='配送中'
+	  	 <if test="taskId!=-1">
+	 		and task_Id=#{taskId}
+		 </if>
+		 <if test="createDate!=''">
+		 	and orders.createdate=#{createDate}
+		 </if>
+		 <if test="sender!=-1">
+		 	and senders.sen_id=#{sender}
+		 </if>
+		 <if test="orderState!=-1">
+		 	and orderstate.osid=#{orderState}
+		 </if>
+		 <if test="district!=-1">
+		 	and users.district=#{district}
+		 </if>
+  	 )
+  </select>
+  <select id="oneTask" resultType="view.ShowTask">
+  	   select tasks.task_id,tasks.dotask_id,
+       orders.ordid,orders.createdate,orderstate.osname,orderstate.osid
+       ,substation.sub_name,substation.sub_id,
+       users.idcard,users.tel,users.address,users.email,users.code,users.district,users.name,users.userid 
+      
+       from tasks inner join orders on tasks.ord_id=orders.ordid
+       inner join orderstate on orders.ordid=orderstate.osid
+       inner join substation on orders.sub_id=substation.sub_id
+       inner join users on orders.userid=users.userid where task_id=#{0}
+ 
+  </select>
+  <delete id="doDeleteTask">
+  	delete from tasks where task_id=#{id}
+  </delete>
+  <update id="doDistribut">
+  	update tasks set <if test="sender!=-1">sen_id=#{sender},</if>sub_id=#{substation} where task_id=${taskId}
+  </update>
+  <select id="productInfo" resultType="view.OrderPro">
+  	select product.proid,product.proname,product.proprice,
+       protype.ptid,protype.pttype,
+       orders.buynum,orders.ordid
+       from product inner join protype on product.protype=protype.ptid
+       inner join orders on orders.proid=product.proid where orders.ordid=#{0}
+  </select>
+  <select id="productTask" resultType="view.OrderPro" >
+ 	 select * from (
+  	 	select rownum as rowno,t.* from(
+		  	select product.proid,product.proname,product.proprice,
+		       protype.ptid,protype.pttype,
+		       orders.buynum,orders.ordid,orders.osid,orderstate.osname
+		       from product inner join protype on product.protype=protype.ptid
+		       inner join orders on orders.proid=product.proid
+		       inner join orderstate on orders.osid= orderstate.osid where orderstate.osname='已签收'
+ 		
+ 			   <if test="proname!=''">
+ 			   	and product.proname like '%'||#{proname}||'%'
+ 			   </if>
+ 			   order by orders.ordid desc
+  	 	)t where rownum &lt;=#{0}
+  	 )r  where r.rowno &gt;=#{1} 
+  </select>
+  <select id="productTaskCount" resultType="java.lang.Integer">
+  	select count(*) from(
+		select product.proid,product.proname,product.proprice,
+	       protype.ptid,protype.pttype,
+	       orders.buynum,orders.ordid,orders.osid,orderstate.osname
+	       from product inner join protype on product.protype=protype.ptid
+	       inner join orders on orders.proid=product.proid
+	       inner join orderstate on orders.osid= orderstate.osid where orderstate.osname='已签收'
+	      
+ 			   <if test="proname!=''">
+ 			   	and product.proname like '%'||#{proname}||'%'
+ 			   </if>)	   
+  </select>
+  <select id="newOrderList" resultType="view.OrderToTask">
+  	 select * from (
+  	 	select rownum as rowno,t.* from(
+  	 		select orders.ordid,orders.createdate,orders.proid,orders.buynum,orders.proadress,orders.sub_id,
+            orderstate.osid,orderstate.osname,
+            product.proprice,
+            orders.userid,users.name,users.idcard,users.tel,users.address,
+          users.email,users.code,users.district
+             from orders inner join orderstate on orders.osid=orderstate.osid 
+             inner join product on orders.proid=product.proid
+             inner join users on orders.userid=users.userid where orderstate.osname='已提交' and orders.sub_id is null
+ 		<if test="createDate!=''">
+ 			and orders.createdate = #{createDate}
+ 		</if>
+ 		<if test="subName!=''">
+ 			and orders.proadress like '%'||#{subName}||'%'
+ 		</if>
+ 		order by orders.ordid desc
+  	 	)t where rownum &lt;=#{top}
+  	 )r  where r.rowno &gt;=#{down}  
+  </select>
+  <select id="newOrderCount" resultType="java.lang.Integer">
+  	select count(*) from(
+  		select orders.ordid,orders.createdate,orders.proid,orders.buynum,orders.proadress,orders.sub_id,
+            orderstate.osid,orderstate.osname,
+            product.proprice,
+            orders.userid,users.name,users.idcard,users.tel,users.address,
+          users.email,users.code,users.district
+             from orders inner join orderstate on orders.osid=orderstate.osid 
+             inner join product on orders.proid=product.proid
+             inner join users on orders.userid=users.userid where orderstate.osname='已提交' and orders.sub_id is null
+ 		<if test="createDate!=''">
+ 			and orders.createdate = #{createDate}
+ 		</if>
+ 		<if test="subName!=''">
+ 			and orders.proadress like '%'||#{subName}||'%'
+ 		</if>
+ 	)
+  </select>
+  <select id="oneOrder" resultType="view.OrderToTask">
+  	select orders.ordid,orders.createdate,orders.proid,orders.buynum,orders.proadress,orders.sub_id,
+            orderstate.osid,orderstate.osname,
+            product.proprice,
+            orders.userid,users.name,users.idcard,users.tel,users.address,
+        users.email,users.code,users.district
+             from orders inner join orderstate on orders.osid=orderstate.osid 
+             inner join product on orders.proid=product.proid
+             inner join users on orders.userid=users.userid where orders.ordid=#{id}
+  </select>
+  <insert id="addTask">
+  	<selectKey keyProperty="task_id" resultType="Integer" order="BEFORE">
+		select max(task_id)+1 from tasks
+	</selectKey>
+  	insert into tasks(task_id,sub_id,ord_id,dotask_id) values(#{task_id},#{newSub},#{ordid},#{doTaskId})
+  </insert>
+  <select id="allOrder" resultType="view.OrderToTask" >
+  	select * from(
+  		select rownum as rowno,t.* from(
+  			select orders.ordid,orders.createdate,orders.proid,orders.buynum,orders.proadress,orders.sub_id,
+            orderstate.osid,orderstate.osname,
+            product.proprice,
+            orders.userid,users.name,users.idcard,users.tel,users.address,
+            users.email,users.code,users.district,
+            tasks.task_id,tasks.dotask_id
+             from orders inner join orderstate on orders.osid=orderstate.osid 
+             inner join product on orders.proid=product.proid
+             inner join users on orders.userid=users.userid
+             inner join tasks on orders.ordid = tasks.ord_id where orders.sub_id is not null
+             
+  		) t where rownum &lt;=#{top}
+  	) r where r.rowno &gt;=#{down}
+  </select>
+  <select id="allOrderCount" resultType="java.lang.Integer">
+  	select count(*) from(
+  		select orders.ordid,orders.createdate,orders.proid,orders.buynum,orders.proadress,orders.sub_id,
+            orderstate.osid,orderstate.osname,
+            product.proprice,
+            orders.userid,users.name,users.idcard,users.tel,users.address,
+            users.email,users.code,users.district,
+            tasks.task_id,tasks.dotask_id
+             from orders inner join orderstate on orders.osid=orderstate.osid 
+             inner join product on orders.proid=product.proid
+             inner join users on orders.userid=users.userid
+             inner join tasks on orders.ordid = tasks.ord_id where orders.sub_id is not null
+             <if test="taskId!=-1">and tasks.task_id=#{taskId}</if>
+             <if test="createDate!=''">and orders.createDate=#{createDate}</if>
+             <if test="orderState!=-1">and orderstate.osid=#{orderState}</if>
+             <if test="subId!=-1">and orders.sub_id=#{subId}</if>
+  	)
+  </select>
+    <select id="dispatchUpdate" resultType="view.OrderToTask" >
+  	select * from(
+  		select rownum as rowno,t.* from(
+  			select orders.ordid,orders.createdate,orders.proid,orders.buynum,orders.proadress,orders.sub_id,
+            orderstate.osid,orderstate.osname,
+            product.proprice,
+            orders.userid,users.name,users.idcard,users.tel,users.address,
+            users.email,users.code,users.district,
+            tasks.task_id,tasks.dotask_id
+             from orders inner join orderstate on orders.osid=orderstate.osid 
+             inner join product on orders.proid=product.proid
+             inner join users on orders.userid=users.userid
+             inner join tasks on orders.ordid = tasks.ord_id where orderstate.osname = '已出库'
+             
+  		) t where rownum &lt;=#{top}
+  	) r where r.rowno &gt;=#{down}
+  </select>
+  <select id="dispatchUpdateCount" resultType="java.lang.Integer">
+  	select count(*) from(
+  		select orders.ordid,orders.createdate,orders.proid,orders.buynum,orders.proadress,orders.sub_id,
+            orderstate.osid,orderstate.osname,
+            product.proprice,
+            orders.userid,users.name,users.idcard,users.tel,users.address,
+            users.email,users.code,users.district,
+            tasks.task_id,tasks.dotask_id
+             from orders inner join orderstate on orders.osid=orderstate.osid 
+             inner join product on orders.proid=product.proid
+             inner join users on orders.userid=users.userid
+             inner join tasks on orders.ordid = tasks.ord_id where orderstate.osname = '已出库'
+             
+  	)
+  </select>
+</mapper>

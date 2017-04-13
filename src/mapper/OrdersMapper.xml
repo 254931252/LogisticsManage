@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.OrdersDao">
+	<resultMap id="BaseResultMap" type="entity.Orders">
+		<id column="ORDID" property="ordid" />
+		<result column="USERID" property="userid" />
+		<result column="OSID" property="osid" />
+		<result column="CREATEDATE" property="createdate" />
+		<result column="PROID" property="proid" />
+		<result column="PROADRESS" property="proadress" />
+		<result column="SUB_ID" property="sub_id" />
+		<result column="BUYNUM" property="buynum" />
+	</resultMap>
+	<select id="queryOrders" resultType="view.OrderPro">
+		select * from
+		(select rownum as rowno, t.*from
+		(SELECT
+		o.ordid,p.proname,o.buynum,p.proprice,s.osname from ORDERS o
+		inner join
+		product p on o.proid=p.proid
+		inner join orderstate s on o.osid=s.osid
+		inner join users u on u.userid=o.userid
+		WHERE 1=1
+		<if test="userid!=-1">
+			and u.userid=#{userid}
+		</if>
+		<if test="osname!=''">
+			and s.osname=#{osname}
+		</if>
+		<if test="proname!=''">
+			and p.proname like '%'||#{proname}||'%'
+		</if>
+		<if test="createdate!=''">
+			and o.createdate=#{createdate}
+		</if>
+		) t
+		where rownum &lt;=#{upper}) r
+		where r.rowno>=#{lower}
+	</select>
+	<select id="queryOrdersList" resultType="view.OrderPro">
+		SELECT
+		o.ordid,p.proname,o.buynum,p.proprice,s.osname from ORDERS o
+		inner join
+		product p on o.proid=p.proid
+		inner join orderstate s on o.osid=s.osid
+		inner join users u on u.userid=o.userid
+	</select>
+	<select id="getUser" resultType="entity.Orders">
+		select
+		name,idcard,workspace,studio,tel,address,code,email,district
+		from USERS
+		where user=#{userid}
+	</select>
+	<update id="updateOS">
+		update orders set osid=#{osid} where ordid=#{ordid}
+	</update>
+	<update id="updateSub">
+		update orders set sub_id=#{subId} where
+		ordid=#{ordid}
+	</update>
+	<insert id="addOrder" parameterType="entity.Product">
+		<selectKey keyProperty="proId" resultType="Integer" order="BEFORE">
+			select max(proId)+1 from product
+		</selectKey>
+		insert into product (proid,proname,proprice,proinfo,protype,punit)
+		values
+		(#{proId},#{proname},#{proprice},#{proinfo},#{protype},#{punit})
+	</insert>
+	<select id="getByProname" resultType="view.ProductType">
+		select
+		proprice,punit,proinfo,pmodel from
+		product
+		t
+		where proname=#{proname}
+	</select>
+	<select id="getByProid" resultType="entity.Product">
+		select proname from product t
+		where t.proid=#{proid}
+	</select>
+	<select id="getPttypt" resultType="view.ProductType">
+		select pttype from protype
+	</select>
+	<select id="getProname" resultType="view.ProductType">
+		select t.proname,t.proid from
+		product t
+	</select>
+	<select id="getPronameByPttype" resultType="view.ProductType">
+		select proname from
+		product t inner join protype p on t.protype=p.ptid
+		where
+		pttype=#{pttype}
+	</select>
+	<update id="getOrders" parameterType="entity.Orders">
+		update orders set
+		buynum=#{buynum} where proid=#{proid}
+	</update>
+	<insert id="addOrders" parameterType="entity.Orders">
+		<selectKey keyProperty="ordid" resultType="Integer" order="BEFORE">
+			select max(ordid)+1 from orders
+		</selectKey>
+		insert into orders
+		(ordid,userid,osid,createdate,proid,proadress,sub_id,buynum)
+		values(#{ordid},#{userid},#{osid},#{createdate},#{proid},#{proadress},#{sub_id},#{buynum})
+	</insert>
+	<select id="getMany" resultType="view.ProductType">
+		select
+		proname,pttype,buynum,punit,proprice,proadress,pmodel,proinfo,name
+		from orders o
+		inner join product p on o.proid=p.proid
+		inner join protype
+		e on
+		e.ptid=o.proid
+		inner join users s on s.userid=o.userid
+		where
+		ordid=#{ordid}
+	</select>
+	<select id="getAll" resultType="view.ProductType">
+		select * from(
+		select rownum as
+		rowno ,r.* from(
+		select
+		p.proname,o.buynum,p.punit,p.proprice,p.proinfo,p.pmodel,p.proid,o.ordid,o.userid from
+		orders o
+		inner join product p on o.proid=p.proid
+		where userid=#{userid} order by o.createdate desc)
+		r
+		where rownum &lt;=#{upper}) t
+		where t.rowno>=#{lower}
+	</select>
+	<select id="getPTByProid" resultType="view.ProductType">
+		select
+		p.proname,o.buynum,p.punit,p.proprice,p.proinfo,p.pmodel,p.proid,o.ordid,o.userid from
+		orders o
+		inner join product p on o.proid=p.proid
+		where o.ordid=#{ordid}
+	</select>
+	<update id="updateBuynum" parameterType="entity.Orders">
+		update orders set
+		buynum=#{buynum} where ordid=#{ordid}
+	</update>
+	<delete id="delOrders" parameterType="entity.Orders">
+		delete orders where
+		ordid=#{ordid}
+	</delete>
+	<select id="queryAll" resultType="view.ProductType">
+		select
+		t.proid,t.createdate,p.pttype,t.proadress,u.name,u.tel,u.code,u.workspace,s.sub_name
+		from orders t
+		inner join users u on t.userid=u.userid
+		inner join protype
+		p on t.proid=p.ptid
+		inner join substation s on t.sub_id=s.sub_id
+	</select>
+	<select id="quertNew" resultType="view.ProductType">
+		select
+		t.proid,t.createdate,p.pttype,t.proadress,u.name,u.tel,u.code,u.workspace,s.sub_name
+		from orders t
+		inner join users u on t.userid=u.userid
+		inner join protype
+		p on t.proid=p.ptid
+		inner join substation s on t.sub_id=s.sub_id
+		where
+		proid=#{proid}
+	</select>
+	<select id="queryOrderState" resultType="entity.OrderState">
+		select osname from
+		orderstate
+	</select>
+	<select id="queryOrderStateByuserid" resultType="entity.OrderState">
+		select d.osname
+		from orders o
+		inner join users u on u.userid=o.userid
+		inner join
+		orderstate d on d.osid = o.osid
+		where u.userid=#{userid}
+	</select>
+	<select id="getPTBYuserid" resultType="view.ProductType">
+		select * from(
+		select
+		rownum as rowno ,t.* from(
+		select
+		o.ordid,r.proname,o.buynum,r.proprice,y.osname from orders o
+		inner join
+		product r on o.proid=r.proid
+		inner join users u on o.userid=u.userid
+		inner join orderstate y on y.osid=o.osid
+		where u.userid=#{userid}) t
+		where rownum &lt;=#{upper}) r
+		where r.rowno>=#{lower}
+	</select>
+	<select id="getOderPageList" resultType="view.OrderPro">
+		select * from
+		(select rownum rowno,t.* from
+		(select * from (
+		select
+		o.ordid,os.osname,p.proid,p.proname,s.sub_name,o.buynum,p.proprice
+		from orders o
+		inner join product p on o.proid=p.proid
+		inner join
+		orderstate os on o.osid=os.osid
+		inner join substation s on
+		o.sub_id=s.sub_id
+		where osname='已完成' or osname='已签收')
+		where 1=1
+		<if test="osname!=''">
+			and osname=#{osname}
+		</if>
+		<if test="subName!=''">
+			and sub_name=#{subName}
+		</if>
+		<if test="proName!=''">
+			and proName like '%'||#{proName}||'%'
+		</if>
+		order by ordid desc) t where rownum&lt;=#{upper}) r
+		where
+		r.rowno>=#{lower}
+	</select>
+	<select id="getOderList" resultType="view.OrderPro">
+		select * from (
+		select o.ordid,os.osname,p.proname,s.sub_name,o.buynum
+		from orders o
+		inner join product p on o.proid=p.proid
+		inner join
+		orderstate os on o.osid=os.osid
+		inner join substation s on
+		o.sub_id=s.sub_id
+		where osname='已完成' or osname='已签收')
+		where 1=1
+		<if test="osname!=''">
+			and osname=#{osname}
+		</if>
+
+		<if test="subName!=''">
+			and sub_name=#{subName}
+		</if>
+		<if test="proName!=''">
+			and proName like '%'||#{proName}||'%'
+		</if>
+
+	</select>
+	<select id="getOrderByOrdId" resultType="view.OrderPro">
+		select
+		o.ordid,os.osname,p.proname,p.proid,s.sub_name,o.buynum,p.proprice
+		from orders o
+		inner join product p on o.proid=p.proid
+		inner join
+		orderstate os on o.osid=os.osid
+		inner join substation s on
+		o.sub_id=s.sub_id
+		where o.ordid=#{ordid}
+	</select>
+</mapper>

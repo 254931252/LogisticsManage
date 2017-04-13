@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.BusinessStatisticsDao" >
+<select id="selectByProduct" resultType="view.RequirementView">
+	select 
+		sum(o.buynum) buynum,o.createdate
+	from orders o
+    	inner join product p on o.proid = p.proid
+    where p.proname = #{proName} and createdate between #{startDate} and #{endDate}
+    	group by o.createdate
+    	order by o.createdate asc
+</select>
+<select id="selectByType" resultType="view.RequirementView">
+	select 
+		p.proname,sum(o.buynum) buynum
+	from orders o
+    	inner join product p on o.proid = p.proid
+    where protype = #{proType} and createdate between #{startDate} and #{endDate}
+    group by proname
+    order by buynum desc
+</select>
+<select id="seleceAll" resultType="view.RequirementView">
+	select t.pttype,sum(o.buynum) buynum from orders o
+        inner join product p on o.proid = p.proid
+        inner join protype t on t.ptid = p.protype
+    where createdate between #{startDate} and #{endDate}
+    	group by t.pttype
+    	order by buynum desc
+</select>
+</mapper>

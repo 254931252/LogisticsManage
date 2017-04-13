@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.ProTypeDao" >
+  <resultMap id="BaseResultMap" type="entity.ProType" >
+    <id column="PTID" property="ptid" />
+    <result column="PTTYPE" property="pttype" />
+    <result column="PTUNIT" property="ptunit" />
+    <result column="PTMODEL" property="ptmodel" />
+  </resultMap>
+  <select id="getTypeList" resultType="entity.ProType">
+  	select * from protype
+  </select>
+</mapper>

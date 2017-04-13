@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.WareHouseDao" >
+  <resultMap id="BaseResultMap" type="entity.WareHouse" >
+    <id column="WHID" property="whid" />
+    <result column="WHNAME" property="whname" />
+    <result column="DISID" property="disid" />
+    <result column="USERID" property="userid" />
+    <result column="WHADDRESS" property="whaddress" />
+  </resultMap>
+  
+  <select id="getBuyProOderById" resultType="java.lang.Integer">
+			select  SUB_ID  from SUBSTATION where 1=1
+			<if test="subName!=''">
+			 and sub_name=#{subName}
+			</if>
+	</select>
+</mapper>

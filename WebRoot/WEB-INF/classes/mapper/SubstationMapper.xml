@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.SubstationDao" >
+  <resultMap id="BaseResultMap" type="entity.Substation" >
+    <result column="SUB_ID" property="subId" />
+    <result column="SUB_NAME" property="subName" />
+  </resultMap>
+ <select id="allSubstation" resultType="entity.Substation">
+ 	select * from substation
+ </select>
+ <select id="getSubIdBySubName" resultType="java.lang.Integer">
+ 	select sub_id from substation where 1=1
+ 	<if test="subName!=''">
+ 	and sub_name=#{subName}
+ 	</if>
+ </select>
+</mapper>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.BuyProDao" >
+  <resultMap id="BaseResultMap" type="entity.BuyPro" >
+    <id column="BPID" property="bpid" />
+    <result column="PROID" property="proid" />
+    <result column="PROAMOUNT" property="proamount" />
+    <result column="BLID" property="blid" />
+    <result column="BPSTATE" property="bpstate" />
+  </resultMap>
+  <select id="getBuyProOderPage" resultType="view.BuyProOder">
+  	select * from 
+  		(select rownum as rowno,t.* from 
+			(select bp.bpid,bp.proid,p.proname,p.proprice,bp.proamount,bp.bpstate,s.supname from buypro bp 
+			join product p on bp.proid=p.proid  join supplier s on s.supid=p.supid
+			where 1=1 
+			<if test="supname!=''">
+				and s.supname=#{supname}
+			</if>
+			<if test="proname!=''">
+				and p.proname like '%'||#{proname}||'%'
+			</if>
+			<if test="bpstate!=''">
+				and bp.bpstate=#{bpstate}
+			</if>
+			
+			) t 
+		where rownum&lt;=#{upper}) r 
+	where r.rowno>=#{lower}
+  </select>
+  <select id="getBuyProOderList" resultType="view.BuyProOder">
+  	select bp.bpid,bp.proid,p.proname,p.proprice,bp.proamount,bp.bpstate,s.supname from buypro bp 
+			join product p on bp.proid=p.proid  join supplier s on s.supid=p.supid
+  			where 1=1 
+			<if test="supname!=''">
+				and s.supname=#{supname}
+			</if>
+			<if test="proname!=''">
+				and p.proname like '%'||#{proname}||'%'
+			</if>
+			<if test="bpstate!=''">
+				and bp.bpstate=#{bpstate}
+			</if>
+  </select>
+  <select id="getBuyStorage" resultType="view.BuyProOder">
+  	  select bp.bpid,bp.proid,p.proname,bp.proamount from buypro bp join product p on bp.proid=p.proid where flag='未入库'
+  	  <if test="bpid!=-1">
+				and bp.bpid=#{bpid}
+		</if>
+  </select>
+  <select id="getPagePro" resultType="view.BuyProOder">
+  	select * from 
+  		(select rownum as rowno, t.* from (select bp.bpid,bp.proid,p.proname,bp.proamount from buypro bp 
+  		join product p on bp.proid=p.proid   where flag='未入库'
+  		<if test="bpid!=-1">
+				and bp.bpid=#{bpid}
+		</if>
+  		)t where rownum&lt;=#{upper})r where r.rowno>=#{lower} order by bpid desc
+  </select>
+	
+	<select id="getBuyProOderBy" resultType="view.BuyProOder">
+		select bp.bpid,bp.proid,p.proname,p.proprice,bp.proamount,bp.bpstate,s.supname from buypro bp 
+			join product p on bp.proid=p.proid  join supplier s on s.supid=p.supid where
+			<if test="bpid!=-1">
+			 bp.bpid=#{bpid}  
+			</if>
+	</select>
+		<delete id="deleteBuyProOrder" >
+		delete from buypro  where 
+		<if test="bpid!=-1">
+				bpid=#{bpid}
+		</if>
+	</delete>
+	<update id="updateBuyProState" > 
+		update buypro set flag='已入库' ,proamount=#{actualamount} where bpid=#{bpid} 
+		
+	</update>
+	<select id="showList" resultType="view.BuyProOder">
+		select bp.bpid,p.proid,p.proname,sp.supname,p.pmodel ,bp.proamount ,ii.itwdate from buypro bp
+    join product p on bp.proid=p.proid join supplier sp on sp.supid=p.supid  join intofware ii  on ii.proid=p.proid  where bp.flag='已入库' order by bpid desc
+	</select>
+	<select id="showPageList" resultType="view.BuyProOder">
+		select * from (select rownum as rowno,t.* from (select bp.bpid,p.proid,p.proname,sp.supname,p.pmodel ,bp.proamount ,ii.itwdate from buypro bp
+    join product p on bp.proid=p.proid join supplier sp on sp.supid=p.supid  join intofware ii  on ii.proid=p.proid  where bp.flag='已入库' 
+		<if test="bpid!=-1">
+				and bp.bpid=#{bpid}
+		</if>
+		)t where rownum&lt;=#{upper})r where r.rowno>=#{lower} order by bpid desc
+	</select>
+	<select id="showDeliveringOrderList" resultType="view.BuyProOder">
+	      select o.ordid,p.proname,p.proid,o.buynum,o.createdate,p.proprice,p.punit,p.pmodel,sup.supname from orders o
+           inner join orderstate s on o.osid = s.osid
+           inner join product p on o.proid = p.proid
+           inner join supplier sup on sup.supid = p.supid
+       where s.osname = '已提交'  and o.sub_id is not null
+	</select>
+	<select id="showDeliveringOrderPageList" resultType="view.BuyProOder">
+		       select * from (select rownum as rowno ,t.* from (   select o.ordid,p.proname,p.proid,o.buynum,o.createdate,p.proprice,p.punit,p.pmodel,sup.supname from orders o
+           inner join orderstate s on o.osid = s.osid
+           inner join product p on o.proid = p.proid
+           inner join supplier sup on sup.supid = p.supid
+       where s.osname = '已提交' and o.sub_id is not null
+     <if test="ordid!=-1">
+     		and o.ordid=#{ordid}
+     </if>
+     
+     )t where rownum&lt;=#{upper})r  where r.rowno&gt;=#{lower} order by  ordid desc
+	</select>
+	<update id="updateOrderState">
+		update orders set osid=7 where 1=1 
+		<if test="ordid!=-1">
+			and ordid=#{ordid}
+		</if>
+	</update>
+	<update id="updateOrderStateIsOut">
+		update orders set Osid=6 where 1=1
+		<if test="ordid!=-1">
+			and ordid=#{ordid}
+		</if>
+	</update>
+	<select id="getBuyProOder" resultType="view.BuyProOder">
+		  select o.ordid, p.proid,p.proprice ,s.supName,o.buynum,p.proname ,sub.sub_name 
+		  from orders o 
+		  	join product p on p.proid=o.proid  
+		  	join supplier s on s.supid=p.supid
+		  	join substation sub on sub.sub_id = o.sub_id
+		  where 
+		  <if test="ordid!=-1">
+		  	ordid=#{ordid}
+		  </if>
+	</select>
+	<select id="getBuyPr" resultType="view.BuyProOder">
+		 select o.ordid,p.proid,p.proname,sup.supname ,sub.sub_name,p.proprice,o.buynum ,ow.outtime from  orders o 
+           join product p   on p.proid=o.proid   
+           join  supplier sup on sup.supid = p.supid 
+           join substation sub on sub.sub_id=o.sub_id 
+           join outofware ow on ow.ordid=o.ordid
+   				where o.ordid=#{ordid}
+	</select>
+	<select id="getBuyP" resultType="view.BuyProOder">
+		 select o.ordid,sub.sub_name,p.proname,p.proid,o.buynum,o.createdate,p.proprice,p.punit,p.pmodel,sup.supname from orders o
+           inner join orderstate s on o.osid = s.osid
+           inner join product p on o.proid = p.proid
+           inner join supplier sup on sup.supid = p.supid
+           inner join substation sub on sub.sub_id=o.sub_id
+       where s.osname = '已提交' and o.sub_id is not null and o.ordid=#{ordid}
+	</select>
+	
+	<select id="prinDeliveringOrderList" resultType="view.BuyProOder">
+		  select p.proid,p.proname,sup.supname ,sub.sub_name,p.proprice,o.buynum ,ow.outtime from orders o  join product p   on p.proid=o.proid   join  supplier sup on sup.supid = p.supid 
+   join substation sub on sub.sub_id=o.sub_id join outofware ow on ow.ordid=o.ordid  where osid=7
+   				<if test="subName!=''">
+   					and sub_name=#{subName}
+   				</if>
+   				<if test="outtime!=''">
+   					and outtime like #{outtime}||'%'
+   				</if>
+   				<if test="proName!=''">
+   					and proname=#{proName}
+   				</if>
+	</select>
+	<select id="prinDeliveringOrderPageList" resultType="view.BuyProOder">
+	   select * from (
+	   		select rownum as rowno ,t.* from (
+	   		select o.ordid,p.proid,p.proname,sup.supname ,sub.sub_name,p.proprice,o.buynum ,ow.outtime from  orders o 
+	   			join product p   on p.proid=o.proid   
+	   			join  supplier sup on sup.supid = p.supid 
+   				join substation sub on sub.sub_id=o.sub_id 
+   				join outofware ow on ow.ordid=o.ordid
+   				where osid=7
+   				<if test="subName!=''">
+   					and sub_name=#{subName}
+   				</if>
+   				<if test="outtime!=''">
+   					and outtime like #{outtime}||'%'
+   				</if>
+   				<if test="proName!=''">
+   					and proname=#{proName}
+   				</if>
+   			)t  where rownum&lt;=#{upper})r where r.rowno>=#{lower}  order by ordid desc
+	</select>
+	<select id="printDistribute" resultType="view.BuyProOder">
+		select o.ordid,p.proid,p.proname,sup.supname ,sub.sub_name,p.proprice,o.buynum ,ow.outtime from  orders o 
+	   			join product p   on p.proid=o.proid   
+	   			join  supplier sup on sup.supid = p.supid 
+   				join substation sub on sub.sub_id=o.sub_id 
+   				join outofware ow on ow.ordid=o.ordid
+   				where 1=1
+	   <if test="outtime!=''">
+			and outtime like #{outtime}||'%'
+	   </if>
+	   <if test="proName!=''">
+			and proname=#{proName}
+	   </if>
+	</select>
+	<select id="printDistrbutePageList" resultType="view.BuyProOder">
+		 select * from (
+	   		select rownum as rowno ,t.* from (
+	   		select o.ordid,p.proid,p.proname,sup.supname ,sub.sub_name,p.proprice,o.buynum ,ow.outtime from  orders o 
+	   			join product p   on p.proid=o.proid   
+	   			join  supplier sup on sup.supid = p.supid 
+   				join substation sub on sub.sub_id=o.sub_id 
+   				join outofware ow on ow.ordid=o.ordid
+   				where 1=1
+   				<if test="outtime!=''">
+   					and outtime like #{outtime}||'%'
+   				</if>
+   				<if test="proName!=''">
+   					and proname=#{proName}
+   				</if>
+   			)t  where rownum&lt;=#{upper})r where r.rowno>=#{lower}
+	</select>
+	<update id="settlement">
+		update buypro set bpstate='已结算' where bpid=#{bpid}
+	</update>
+</mapper>

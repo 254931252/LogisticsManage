@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.UserDao">
+
+	<cache />
+	<resultMap id="BaseResultMap" type="entity.User">
+		<id column="USERID" property="userid" />
+		<result column="USERNAME" property="username" />
+		<result column="USERPASS" property="userpass" />
+		<result column="JURIID" property="juriid" />
+		<result column="WORKSPACE" property="workspace" />
+		<result column="IDCARD" property="idcard" />
+		<result column="STUDIO" property="studio" />
+		<result column="TEL" property="tel" />
+		<result column="ADDRESS" property="address" />
+		<result column="EMAIL" property="email" />
+		<result column="CODE" property="code" />
+		<result column="DISTRICT" property="district" />
+		<result column="NAME" property="name" />
+	</resultMap>
+	<select id="getUserByUserid" resultType="entity.User">
+		select * from Users where userid=#{userid}
+	</select>
+
+	<select id="checkUser" resultType="entity.User">
+		select * from users where username=#{userName} and userpass=#{userPass}
+	</select>
+	<select id="getUsersByIdcard" resultType="entity.User">
+		select * from
+		(select rownum as rowno,t.* from
+		(select userid,name,idcard,tel,address from users
+		where 1=1
+		<if test="idcard!=''">
+			and idcard=#{idcard}
+		</if>
+		<if test="name!=''">
+			and name like '%'||#{name}|| '%'
+		</if>
+		<if test="tel!=''">
+			and tel=#{tel}
+		</if>)t
+		where rownum &lt;=#{upper}) r
+		where rowno>=#{lower}
+	</select>
+	<select id="getPage" resultType="entity.User">
+		select userid,name,idcard,tel,address from Users
+	</select>
+	<select id="getUsers" resultType="entity.User">
+		select userid,name,idcard,tel,address from users
+		where 1=1
+		<if test="name!=''">
+			and name like '%' ||#{name}|| '%'
+		</if>
+		<if test="idcard!=''">
+			and idcard =#{idcard}
+		</if>
+		<if test="tel!=''">
+			and tel = #{tel}
+		</if>
+	</select>
+	<insert id="addUser" parameterType="entity.User">
+		<selectKey keyProperty="userid" resultType="Integer" order="BEFORE">
+			select max(userId)+1 from users
+		</selectKey>
+		INSERT INTO USERs (userid,name,idcard,studio,address,district,workspace,tel,code,email,username,userpass,juriid) VALUES
+		(#{userid},#{name},#{idcard},#{studio},#{address},#{district},#{workspace},#{tel},#{code},#{email},#{username},#{userpass},2)
+	</insert>
+	<update id="updateNewUser" parameterType="entity.User">
+		UPDATE USERS
+		SET workspace=#{workspace},idcard=#{idcard},studio=#{studio},tel=#{tel},
+		address=#{address},email=#{email},code=#{code},district=#{district},name=#{name}
+		WHERE userid=#{userid}
+	</update>
+	<update id="updatePerpleByUserId" parameterType="entity.User">
+		update users set
+		name=#{name},idcard=#{idcard},workspace=#{workspace},studio=#{studio},
+		tel=#{tel},address=#{address},code=#{code},email=#{email},district=#{district}
+		where userid=#{userid}
+	</update>
+	<delete id="delUserByUserid" parameterType="entity.User">
+		delete users where userid=#{userid}
+	</delete>
+	<select id="getUserByUserName" resultType="entity.User">
+		select * from users where userName=#{userName}
+	</select>
+</mapper>

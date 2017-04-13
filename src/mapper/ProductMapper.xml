@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.ProductDao" >
+  <resultMap id="ProductResultMap" type="entity.Product" >
+    <id column="PROID" property="proid" />
+    <result column="PRONAME" property="proname" />
+    <result column="PROPRICE" property="proprice" />
+    <result column="PROINFO" property="proinfo" />
+    <result column="PROTYPE" property="protype" />
+    <result column="COSTPRICE" property="costprice" />
+    <result column="SUPID" property="supid" />
+    <result column="PUNIT" property="punit" />
+    <result column="PMODEL" property="pmodel" />
+  </resultMap>
+		
+	<delete id="deleteProduct" >
+		delete from Product where proid=#{proid}
+		<if test="proid!=-1">
+				and proid=#{proid}
+		</if>
+	</delete>
+</mapper>
